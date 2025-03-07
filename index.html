@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #carForm {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], select, textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .warranty-options {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 10px 0;
+        }
+        .warranty-options label {
+            margin-right: 10px;
+        }
+    </style>
+    <script>
+        let editRowIndex = -1;
+
+        function openForm() {
+            document.getElementById('carForm').style.display = 'block';
+            document.getElementById('carTable').style.display = 'none';
+            editRowIndex = -1;
+        }
+
+        function closeForm() {
+            document.getElementById('carForm').style.display = 'none';
+            document.getElementById('carTable').style.display = 'block';
+            document.getElementById('form').reset();
+        }
+
+        function formatCurrency(value) {
+            return parseFloat(value).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        function formatDate(dateString) {
+            const parts = dateString.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function addCar() {
+            const brand = document.getElementById('brand').value;
+            const model = document.getElementById('model').value;
+            const year = document.getElementById('year').value;
+            const type = document.getElementById('type').value;
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            const formattedDate = formatDate(purchaseDate);
+            const purchaseValue = document.getElementById('purchaseValue').value;
+            const observation = document.getElementById('observation').value;
+            const status = document.getElementById('status').value;
+
+            const additionalItems = [];
+            const checkboxes = document.querySelectorAll('input[name="additionalItems"]:checked');
+            checkboxes.forEach((checkbox) => {
+                additionalItems.push(checkbox.value);
+            });
+
+            const warranty = document.querySelector('input[name="warranty"]:checked').value;
+
+            const tableBody = document.getElementById('carTableBody');
+            if (editRowIndex === -1) {
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${brand}</td>
+                    <td>${model}</td>
+                    <td>${year}</td>
+                    <td>${type}</td>
+                    <td>${formattedDate}</td>
+                    <td>${formatCurrency(purchaseValue)}</td>
+                    <td>${observation}</td>
+                    <td>${status}</td>
+                    <td>${additionalItems.join(', ') || 'Nenhum'}</td>
+                    <td>${warranty}</td>
+                    <td>
+                        <button onclick="editCar(this)">Editar</button>
+                        <button onclick="deleteRow(this)">Excluir</button>
+                    </td>
+                `;
+            } else {
+                const row = tableBody.rows[editRowIndex];
+                row.cells[0].innerText = brand;
+                row.cells[1].innerText = model;
+                row.cells[2].innerText = year;
+                row.cells[3].innerText = type;
+                row.cells[4].innerText = formattedDate;
+                row.cells[5].innerText = formatCurrency(purchaseValue);
+                row.cells[6].innerText = observation;
+                row.cells[7].innerText = status;
+                row.cells[8].innerText = additionalItems.join(', ') || 'Nenhum';
+                row.cells[9].innerText = warranty;
+            }
+
+            closeForm();
+            document.getElementById('form').reset();
+        }
+
+        function editCar(button) {
+            const row = button.parentNode.parentNode;
+            editRowIndex = row.rowIndex - 1;
+
+            document.getElementById('brand').value = row.cells[0].innerText;
+            document.getElementById('model').value = row.cells[1].innerText;
+            document.getElementById('year').value = row.cells[2].innerText;
+            document.getElementById('type').value = row.cells[3].innerText;
+            const dateParts = row.cells[4].innerText.split('/');
+            document.getElementById('purchaseDate').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            document.getElementById('purchaseValue').value = row.cells[5].innerText.replace("R$ ", "").replace(".", "").replace(",", ".");
+            document.getElementById('observation').value = row.cells[6].innerText;
+            document.getElementById('status').value = row.cells[7].innerText;
+
+            document.getElementById('carForm').style.display = 'block';
+            document.getElementById('carTable').style.display = 'none';
+        }
+
+        function deleteRow(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            editRowIndex = -1;
+        }
+    </script>
+</head>
+<body>
+    <h1>Cadastro</h1>
+
+    <div id="carForm">
+        <h2>Cadastramento de Veículos</h2>
+        <form id="form" onsubmit="event.preventDefault(); addCar();">
+            <label for="brand">Marca:</label>
+            <select id="brand" required>
+                <option value="">Selecione uma marca</option>
+                <option value="Volkswagen">Volkswagen</option>
+                <option value="Fiat">Fiat</option>
+                <option value="Chevrolet">Chevrolet</option>
+            </select>
+
+            <label for="model">Modelo:</label>
+            <input type="text" id="model" required>
+
+            <label for="year">Ano:</label>
+            <input type="number" id="year" min="1980" required>
+
+            <label for="type">Tipo:</label>
+            <select id="type" required>
+                <option value="">Selecione um tipo</option>
+                <option value="SUV">SUV</option>
+                <option value="Sedan">Sedan</option>
+                <option value="Hatch">Hatch</option>
+            </select>
+
+            <label for="purchaseDate">Data de Compra:</label>
+            <input type="date" id="purchaseDate" required>
+
+            <label for="purchaseValue">Valor de Compra:</label>
+            <input type="text" id="purchaseValue" placeholder="R$ 0,00" required>
+
+            <label for="observation">Observação:</label>
+            <textarea id="observation"></textarea>
+
+            <label for="status">Status:</label>
+            <select id="status" required>
+                <option value="Disponível">Disponível</option>
+                <option value="Vendido">Vendido</option>
+            </select>
+
+            <label>Possui Garantia?</label>
+            <div class="warranty-options">
+                <label>
+                    <input type="radio" id="warrantyYes" name="warranty" value="Sim" required>
+                    Sim
+                </label>
+                <label>
+                    <input type="radio" id="warrantyNo" name="warranty" value="Não" required>
+                    Não
+                </label>
+            </div>
+
+            <label>Itens Adicionais:</label>
+            <input type="checkbox" name="additionalItems" value="Rodas de Liga Leve"> Rodas de Liga Leve<br>
+            <input type="checkbox" name="additionalItems" value="Ar Condicionado"> Ar Condicionado<br>
+            <input type="checkbox" name="additionalItems" value="Teto Solar"> Teto Solar<br>
+            <input type="checkbox" name="additionalItems" value="Sistema de Som Premium"> Sistema de Som Premium<br>
+
+            <div class="button-container">
+                <button type="submit">Salvar</button>
+                <button type="button" onclick="closeForm()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <table id="carTable">
+        <thead>
+            <tr>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Tipo</th>
+                <th>Data de Compra</th>
+                <th>Valor de Compra</th>
+                <th>Observação</th>
+                <th>Status</th>
+                <th>Itens Adicionais</th>
+                <th>Possui Garantia?</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="carTableBody">
+            <!-- Os dados dos veículos serão inseridos aqui -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="11" style="text-align: center;">
+                    <button onclick="openForm()">Adicionar Veículo</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>
